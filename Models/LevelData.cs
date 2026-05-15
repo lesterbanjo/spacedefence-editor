@@ -10,18 +10,12 @@ namespace spacedefence_editor2.Models
 
         [JsonPropertyName("Track")]
         public TrackData Track { get; set; } = new();
-
-        [JsonExtensionData]
-        public Dictionary<string, object> AdditionalData { get; set; } = new();
     }
 
     public class WaveData
     {
         [JsonPropertyName("Aliens")]
         public List<AlienData> Aliens { get; set; } = new();
-
-        [JsonExtensionData]
-        public Dictionary<string, object> AdditionalData { get; set; } = new();
     }
 
     public class AlienData
@@ -32,9 +26,6 @@ namespace spacedefence_editor2.Models
         public float Armor { get; set; }
         public double Offset { get; set; }
         public float Speed { get; set; }
-
-        [JsonExtensionData]
-        public Dictionary<string, object> AdditionalData { get; set; } = new();
     }
 
     public class TrackData
@@ -44,9 +35,6 @@ namespace spacedefence_editor2.Models
         public List<TrackBitData> TrackBits { get; set; } = new();
         public int Width { get; set; }
         public int Height { get; set; }
-
-        [JsonExtensionData]
-        public Dictionary<string, object> AdditionalData { get; set; } = new();
     }
 
     public class TrackBitData
@@ -54,8 +42,5 @@ namespace spacedefence_editor2.Models
         public int X { get; set; }
         public int Y { get; set; }
         public string Direction { get; set; }
-
-        [JsonExtensionData]
-        public Dictionary<string, object> AdditionalData { get; set; } = new();
     }
 }

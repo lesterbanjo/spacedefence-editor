@@ -74,10 +74,8 @@ public partial class MainWindowViewModel : ViewModelBase
         NewCommand = new RelayCommand(NewLevel);
         OpenCommand = new AsyncRelayCommand(OpenLevel);
         SaveCommand = new AsyncRelayCommand(SaveLevel);
-        SaveAsCommand = new AsyncRelayCommand(SaveLevelAs);
         AddTrackBitCommand = new RelayCommand<Avalonia.Point?>(AddTrackBit);
         AddWaypointCommand = new RelayCommand<Avalonia.Point?>(AddWaypoint);
-        TogglePathDrawingModeCommand = new RelayCommand(() => IsPathDrawingMode = !IsPathDrawingMode);
         AddPathDrawingPointCommand = new RelayCommand<Avalonia.Point?>(AddPathDrawingPoint);
         FinalizePathCommand = new RelayCommand(FinalizePath);
     }
@@ -85,10 +83,8 @@ public partial class MainWindowViewModel : ViewModelBase
     public ICommand NewCommand { get; }
     public IAsyncRelayCommand OpenCommand { get; }
     public IAsyncRelayCommand SaveCommand { get; }
-    public IAsyncRelayCommand SaveAsCommand { get; }
     public IRelayCommand<Avalonia.Point?> AddTrackBitCommand { get; }
     public IRelayCommand<Avalonia.Point?> AddWaypointCommand { get; }
-    public ICommand TogglePathDrawingModeCommand { get; }
     public IRelayCommand<Avalonia.Point?> AddPathDrawingPointCommand { get; }
     public ICommand FinalizePathCommand { get; }
 
@@ -254,11 +250,6 @@ public partial class MainWindowViewModel : ViewModelBase
         return "Horizontal";
     }
 
-    private bool HasTrackBitAt(int x, int y)
-    {
-        return CurrentLevel?.Track.TrackBits.Exists(b => b.X == x && b.Y == y) ?? false;
-    }
-
     public void DeleteSelected()
     {
         if (CurrentLevel == null || SelectedObject == null) return;
@@ -311,7 +302,7 @@ public partial class MainWindowViewModel : ViewModelBase
     {
         if (string.IsNullOrEmpty(CurrentFilePath))
         {
-            await SaveLevelAs();
+            RequestSaveFileAs?.Invoke(this, EventArgs.Empty);
             return;
         }
 
@@ -328,11 +319,6 @@ public partial class MainWindowViewModel : ViewModelBase
                 StatusText = $"Fel vid sparning: {ex.Message}";
             }
         }
-    }
-
-    private async Task SaveLevelAs()
-    {
-        RequestSaveFileAs?.Invoke(this, EventArgs.Empty);
     }
 
     public void SaveLevelToPath(string path)
