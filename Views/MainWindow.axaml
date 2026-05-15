@@ -1,0 +1,168 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:spacedefence_editor2.ViewModels"
+        xmlns:models="using:spacedefence_editor2.Models"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+        x:Class="spacedefence_editor2.Views.MainWindow"
+        x:DataType="vm:MainWindowViewModel"
+        Icon="/Assets/avalonia-logo.ico"
+        Title="spacedefence_editor2">
+
+    <Window.Resources>
+        <!-- Add resources if needed -->
+    </Window.Resources>
+
+    <DockPanel Name="MainDock">
+        <!-- Top Area: Menu and Toolbar -->
+        <StackPanel DockPanel.Dock="Top">
+            <Menu>
+                <MenuItem Header="_File">
+                    <MenuItem Header="_New" Command="{Binding NewCommand}" InputGesture="Ctrl+N"/>
+                    <MenuItem Header="_Open..." Command="{Binding OpenCommand}" InputGesture="Ctrl+O"/>
+                    <Separator/>
+                    <MenuItem Header="_Save" Command="{Binding SaveCommand}" InputGesture="Ctrl+S"/>
+                    <MenuItem Header="Save _As..." Command="{Binding SaveAsCommand}" InputGesture="Ctrl+Shift+S"/>
+                    <Separator/>
+                    <MenuItem Header="_Exit"/>
+                </MenuItem>
+                <MenuItem Header="_Edit">
+                    <MenuItem Header="_Undo" InputGesture="Ctrl+Z"/>
+                    <MenuItem Header="_Redo" InputGesture="Ctrl+Y"/>
+                    <Separator/>
+                    <MenuItem Header="_Copy" InputGesture="Ctrl+C"/>
+                    <MenuItem Header="_Paste" InputGesture="Ctrl+V"/>
+                    <MenuItem Header="_Duplicate" InputGesture="Ctrl+D"/>
+                    <MenuItem Header="_Delete" InputGesture="Delete"/>
+                </MenuItem>
+            </Menu>
+
+            <!-- Toolbar -->
+            <Border Background="#ddd" Padding="5">
+                <StackPanel Orientation="Horizontal" Spacing="5">
+                    <Button Command="{Binding NewCommand}" ToolTip.Tip="New (Ctrl+N)">New</Button>
+                    <Button Command="{Binding OpenCommand}" ToolTip.Tip="Open (Ctrl+O)">Open</Button>
+                    <Button Command="{Binding SaveCommand}" ToolTip.Tip="Save (Ctrl+S)">Save</Button>
+                    <Separator Margin="5,0"/>
+                    <ToggleButton ToolTip.Tip="Toggle Grid">Grid</ToggleButton>
+                    <ToggleButton ToolTip.Tip="Snap to Grid">Snap</ToggleButton>
+                    <Separator Margin="5,0"/>
+                    <ToggleButton Content="Rita bana" IsChecked="{Binding IsPathDrawingMode}" 
+                                  ToolTip.Tip="Klicka på canvas för att rita bana (3-15 punkter)"/>
+                    <Button Content="Slutför bana" Command="{Binding FinalizePathCommand}" 
+                            IsEnabled="{Binding IsPathDrawingMode}" ToolTip.Tip="Skapa banan från ritade punkter"/>
+                </StackPanel>
+            </Border>
+        </StackPanel>
+
+        <!-- Status Bar -->
+        <Border DockPanel.Dock="Bottom" BorderBrush="Gray" BorderThickness="0,1,0,0" Padding="5">
+            <DockPanel>
+                <TextBlock Text="{Binding StatusText}"/>
+                <TextBlock Text="{Binding CurrentFilePath}" HorizontalAlignment="Right" Foreground="Gray"/>
+            </DockPanel>
+        </Border>
+
+        <!-- Main Content Area -->
+        <Grid ColumnDefinitions="200, *, 300">
+            <!-- Left Panel: Palette & Themes -->
+            <TabControl Grid.Column="0">
+                <TabItem Header="Palette">
+                    <ScrollViewer>
+                        <StackPanel Spacing="5" Margin="5">
+                            <TextBlock Text="Aliens" FontWeight="Bold"/>
+                            <Button HorizontalAlignment="Stretch">Alien1</Button>
+                            <Button HorizontalAlignment="Stretch">Alien2</Button>
+                            <TextBlock Text="Track" FontWeight="Bold" Margin="0,10,0,0"/>
+                            <Button HorizontalAlignment="Stretch" Command="{Binding AddTrackBitCommand}">Track Piece</Button>
+                            <Button HorizontalAlignment="Stretch" Command="{Binding AddWaypointCommand}">Waypoint</Button>
+                        </StackPanel>
+                    </ScrollViewer>
+                </TabItem>
+                <TabItem Header="Theme">
+                    <StackPanel Margin="5">
+                         <ComboBox HorizontalAlignment="Stretch" PlaceholderText="Select Theme">
+                             <ComboBoxItem>NeonCyan</ComboBoxItem>
+                             <ComboBoxItem>NeonPurple</ComboBoxItem>
+                             <ComboBoxItem>NeonYellow</ComboBoxItem>
+                             <ComboBoxItem>NeonPink</ComboBoxItem>
+                         </ComboBox>
+                    </StackPanel>
+                </TabItem>
+            </TabControl>
+
+            <!-- Middle Panel: Canvas -->
+            <ScrollViewer Grid.Column="1" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto" Background="#222">
+                <Viewbox Stretch="None">
+                    <Canvas Name="EditorCanvas" Width="900" Height="840" Background="#111">
+                        <Canvas.ContextMenu>
+                            <ContextMenu>
+                                <MenuItem Header="Add Track Piece" Command="{Binding AddTrackBitCommand}" CommandParameter="{Binding $parent[ContextMenu].Tag}"/>
+                                <MenuItem Header="Add Waypoint" Command="{Binding AddWaypointCommand}" CommandParameter="{Binding $parent[ContextMenu].Tag}"/>
+                            </ContextMenu>
+                        </Canvas.ContextMenu>
+                    </Canvas>
+                </Viewbox>
+            </ScrollViewer>
+
+            <!-- Right Panel: Properties -->
+            <TabControl Grid.Column="2">
+                <TabItem Header="Properties">
+                    <ScrollViewer>
+                        <StackPanel Spacing="10" Margin="10">
+                            <!-- Selected Object Header -->
+                            <TextBlock Text="{Binding SelectedObject, StringFormat='Selected: {0}'}" FontWeight="Bold" IsVisible="{Binding !!SelectedObject}"/>
+                            <TextBlock Text="No selection" IsVisible="{Binding !SelectedObject}"/>
+
+                            <!-- Level Settings (always visible if level loaded) -->
+                            <StackPanel IsVisible="{Binding !!CurrentLevel}">
+                                <Separator Margin="0,10"/>
+                                <TextBlock Text="Level Settings" FontWeight="Bold"/>
+                                <Grid ColumnDefinitions="Auto, *" RowDefinitions="Auto, Auto" Margin="0,5">
+                                    <TextBlock Grid.Row="0" Grid.Column="0" Text="Width:" VerticalAlignment="Center"/>
+                                    <NumericUpDown Grid.Row="0" Grid.Column="1" Value="{Binding CurrentLevel.Track.Width}" Margin="5,0,0,5"/>
+                                    <TextBlock Grid.Row="1" Grid.Column="0" Text="Height:" VerticalAlignment="Center"/>
+                                    <NumericUpDown Grid.Row="1" Grid.Column="1" Value="{Binding CurrentLevel.Track.Height}" Margin="5,0,0,5"/>
+                                </Grid>
+                                <TextBlock Text="Theme Color:"/>
+                                <TextBox Text="{Binding CurrentLevel.Track.ThemeColor}"/>
+                            </StackPanel>
+
+                            <!-- TrackBit Properties -->
+                            <StackPanel IsVisible="{Binding SelectedObject, Converter={x:Static ObjectConverters.IsNotNull}}">
+                                <Separator Margin="0,10"/>
+                                <TextBlock Text="Object Properties" FontWeight="Bold"/>
+                                
+                                <Grid ColumnDefinitions="Auto, *" RowDefinitions="Auto, Auto, Auto" Margin="0,5" x:CompileBindings="False">
+                                    <TextBlock Grid.Row="0" Grid.Column="0" Text="X:" VerticalAlignment="Center"/>
+                                    <NumericUpDown Grid.Row="0" Grid.Column="1" Value="{Binding SelectedObject.X}" Margin="5,0,0,5"/>
+                                    
+                                    <TextBlock Grid.Row="1" Grid.Column="0" Text="Y:" VerticalAlignment="Center"/>
+                                    <NumericUpDown Grid.Row="1" Grid.Column="1" Value="{Binding SelectedObject.Y}" Margin="5,0,0,5"/>
+                                    
+                                    <TextBlock Grid.Row="2" Grid.Column="0" Text="Direction:" VerticalAlignment="Center"/>
+                                    <TextBox Grid.Row="2" Grid.Column="1" Text="{Binding SelectedObject.Direction}" Margin="5,0,0,5"/>
+                                </Grid>
+                            </StackPanel>
+
+                            <!-- Waypoint Properties (List<int>) -->
+                            <StackPanel IsVisible="{Binding SelectedObject, Converter={x:Static ObjectConverters.IsNotNull}}" x:CompileBindings="False">
+                                <StackPanel IsVisible="{Binding SelectedObject.Count}">
+                                    <Separator Margin="0,10"/>
+                                    <TextBlock Text="Waypoint Properties" FontWeight="Bold"/>
+                                    <Grid ColumnDefinitions="Auto, *" RowDefinitions="Auto, Auto" Margin="0,5">
+                                        <TextBlock Grid.Row="0" Grid.Column="0" Text="X:" VerticalAlignment="Center"/>
+                                        <NumericUpDown Grid.Row="0" Grid.Column="1" Value="{Binding SelectedObject[0]}" Margin="5,0,0,5"/>
+                                        <TextBlock Grid.Row="1" Grid.Column="0" Text="Y:" VerticalAlignment="Center"/>
+                                        <NumericUpDown Grid.Row="1" Grid.Column="1" Value="{Binding SelectedObject[1]}" Margin="5,0,0,5"/>
+                                    </Grid>
+                                </StackPanel>
+                            </StackPanel>
+                        </StackPanel>
+                    </ScrollViewer>
+                </TabItem>
+            </TabControl>
+        </Grid>
+    </DockPanel>
+</Window>
