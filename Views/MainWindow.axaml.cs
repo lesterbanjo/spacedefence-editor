@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Avalonia.Controls;
 using Avalonia.Platform.Storage;
+using spacedefence_editor2.Models;
 using spacedefence_editor2.ViewModels;
 
 namespace spacedefence_editor2.Views;
@@ -158,6 +159,9 @@ public partial class MainWindow : Window
             }
         }
 
+        var themeBrush = DrawingUtils.GetBrushByName(level.Track.ThemeColor);
+        var gridBrush = DrawingUtils.GetBrushByName(level.Track.ThemeColor, 0.35);
+
         // Render Grid
         for (int x = 0; x <= level.Track.Width; x++)
         {
@@ -165,9 +169,8 @@ public partial class MainWindow : Window
             {
                 StartPoint = new Avalonia.Point(x * cellSize, 0),
                 EndPoint = new Avalonia.Point(x * cellSize, level.Track.Height * cellSize),
-                Stroke = Avalonia.Media.Brushes.DarkGray,
+                Stroke = gridBrush,
                 StrokeThickness = 0.5,
-                Opacity = 0.3,
                 ZIndex = 0
             };
             line.PointerPressed += (s, e) => { vm.SelectedObject = null; RenderLevel(); };
@@ -179,9 +182,8 @@ public partial class MainWindow : Window
             {
                 StartPoint = new Avalonia.Point(0, y * cellSize),
                 EndPoint = new Avalonia.Point(level.Track.Width * cellSize, y * cellSize),
-                Stroke = Avalonia.Media.Brushes.DarkGray,
+                Stroke = gridBrush,
                 StrokeThickness = 0.5,
-                Opacity = 0.3,
                 ZIndex = 0
             };
             line.PointerPressed += (s, e) => { vm.SelectedObject = null; RenderLevel(); };
@@ -195,7 +197,7 @@ public partial class MainWindow : Window
             {
                 Width = cellSize - 4,
                 Height = cellSize - 4,
-                Stroke = bit == vm.SelectedObject ? Avalonia.Media.Brushes.Yellow : Avalonia.Media.Brushes.Cyan,
+                Stroke = bit == vm.SelectedObject ? Avalonia.Media.Brushes.Yellow : themeBrush,
                 StrokeThickness = bit == vm.SelectedObject ? 4 : 2,
                 Fill = Avalonia.Media.Brushes.Transparent,
                 Tag = bit,
@@ -230,6 +232,21 @@ public partial class MainWindow : Window
             for (int i = 0; i < level.Track.Path.Count; i++)
             {
                 var point = level.Track.Path[i];
+
+                var pathCellRect = new Avalonia.Controls.Shapes.Rectangle
+                {
+                    Width = cellSize - 4,
+                    Height = cellSize - 4,
+                    Stroke = themeBrush,
+                    StrokeThickness = 2,
+                    Fill = themeBrush,
+                    Opacity = 0.2,
+                    ZIndex = 0
+                };
+                Canvas.SetLeft(pathCellRect, point[0] * cellSize + 2);
+                Canvas.SetTop(pathCellRect, point[1] * cellSize + 2);
+                canvas.Children.Add(pathCellRect);
+
                 var ellipse = new Avalonia.Controls.Shapes.Ellipse
                 {
                     Width = 16,
@@ -261,7 +278,7 @@ public partial class MainWindow : Window
                     {
                         StartPoint = new Avalonia.Point(p1[0] * cellSize + cellSize / 2, p1[1] * cellSize + cellSize / 2),
                         EndPoint = new Avalonia.Point(p2[0] * cellSize + cellSize / 2, p2[1] * cellSize + cellSize / 2),
-                        Stroke = Avalonia.Media.Brushes.Yellow,
+                        Stroke = themeBrush,
                         StrokeThickness = 3,
                         Opacity = 0.5,
                         ZIndex = 5
@@ -308,15 +325,7 @@ public partial class MainWindow : Window
 
     private Avalonia.Media.IBrush GetColor(string colorName)
     {
-        return colorName?.ToLower() switch
-        {
-            "red" => Avalonia.Media.Brushes.Red,
-            "green" => Avalonia.Media.Brushes.Green,
-            "blue" => Avalonia.Media.Brushes.Blue,
-            "yellow" => Avalonia.Media.Brushes.Yellow,
-            "purple" => Avalonia.Media.Brushes.Purple,
-            _ => Avalonia.Media.Brushes.Gray
-        };
+        return DrawingUtils.GetBrushByName(colorName);
     }
 
     private async System.Threading.Tasks.Task OpenFileDialog()
