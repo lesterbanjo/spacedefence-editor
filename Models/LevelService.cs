@@ -26,9 +26,6 @@ namespace spacedefence_editor2.Models
 
         public static void SaveLevel(string filePath, LevelData levelData)
         {
-            // For testing, ensure 3 waves of 3 aliens
-            AddDefaultWaves(levelData);
-
             // Create backup if file exists
             if (File.Exists(filePath))
             {
@@ -51,30 +48,8 @@ namespace spacedefence_editor2.Models
                     Height = 14
                 }
             };
-            AddDefaultWaves(level);
             return level;
         }
 
-        private static void AddDefaultWaves(LevelData level)
-        {
-            level.Waves.Clear();
-            for (int i = 0; i < 3; i++)
-            {
-                var wave = new WaveData();
-                for (int j = 0; j < 3; j++)
-                {
-                    wave.Aliens.Add(new AlienData
-                    {
-                        Type = "Alien1",
-                        Color = "Red",
-                        Hitpoints = 10,
-                        Speed = 100,
-                        Armor = 0,
-                        Offset = j * 0.5
-                    });
-                }
-                level.Waves.Add(wave);
-            }
-        }
     }
 }
